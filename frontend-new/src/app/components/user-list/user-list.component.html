@@ -1,38 +1,80 @@
-<p>user-list works!</p>
 <div class="container mt-4">
-  <h2>User List</h2>
-  <button class="btn btn-primary mb-3" (click)="addUser()">Add User</button>
-  <app-user-form
-    *ngIf="addMode"
-    (save)="onSave($event)"
-    (cancel)="addMode = false"
-  ></app-user-form>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>User List</h2>
+    <button class="btn btn-outline-danger" (click)="logout()">Logout</button>
+  </div>
 
-  <table class="table table-borderes">
-    <thead>
+  <button class="btn btn-primary mb-3" (click)="openAddModal()">
+    Add User
+  </button>
+
+  <!-- Table -->
+  <table
+    class="table table-hover table-striped table-bordered rounded shadow-sm"
+  >
+    <thead class="table-dark">
       <tr>
         <th>Username</th>
         <th>Nama</th>
         <th>Hak Akses</th>
         <th>Kode Klinik</th>
         <th>Kode Cabang</th>
-        <th>Actions</th>
+        <th class="text-center">Actions</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let user of users">
+      <tr *ngFor="let user of users" class="align-middle">
         <td>{{ user.username }}</td>
-        <td>{{ user.nama }}</td>
-        <td>{{ user.hakAkses }}</td>
-        <td>{{ user.kdKlinik }}</td>
-        <td>{{ user.kdCabang }}</td>
-        <td>
-          <button class="btn btn-warning" (click)="editUser(user)">Edit</button>
-          <button class="btn btn-danger" (click)="deleteUser(user.id)">
-            Delete
+        <td>{{ user.name }}</td>
+        <td>{{ user.hakakses }}</td>
+        <td>{{ user.kdklinik }}</td>
+        <td>{{ user.kdcabang }}</td>
+        <td class="d-flex justify-content-center gap-2">
+          <button
+            class="btn btn-sm btn-warning px-3"
+            (click)="openEditModal(user)"
+          >
+            ✏️ Edit
+          </button>
+          <button
+            class="btn btn-sm btn-danger px-3"
+            (click)="deleteUser(user.kduser)"
+          >
+            🗑 Delete
           </button>
         </td>
       </tr>
     </tbody>
   </table>
+</div>
+
+<div
+  class="modal fade"
+  id="userModal"
+  tabindex="-1"
+  aria-labelledby="userModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="userModalLabel">
+          {{ editMode ? "Edit User" : "Add User" }}
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <app-user-form
+          [editData]="editData"
+          (save)="onSave($event)"
+          (cancel)="closeModal()"
+        ></app-user-form>
+      </div>
+    </div>
+  </div>
 </div>
