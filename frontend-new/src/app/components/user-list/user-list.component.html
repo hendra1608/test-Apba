@@ -1,0 +1,38 @@
+<p>user-list works!</p>
+<div class="container mt-4">
+  <h2>User List</h2>
+  <button class="btn btn-primary mb-3" (click)="addUser()">Add User</button>
+  <app-user-form
+    *ngIf="addMode"
+    (save)="onSave($event)"
+    (cancel)="addMode = false"
+  ></app-user-form>
+
+  <table class="table table-borderes">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Nama</th>
+        <th>Hak Akses</th>
+        <th>Kode Klinik</th>
+        <th>Kode Cabang</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users">
+        <td>{{ user.username }}</td>
+        <td>{{ user.nama }}</td>
+        <td>{{ user.hakAkses }}</td>
+        <td>{{ user.kdKlinik }}</td>
+        <td>{{ user.kdCabang }}</td>
+        <td>
+          <button class="btn btn-warning" (click)="editUser(user)">Edit</button>
+          <button class="btn btn-danger" (click)="deleteUser(user.id)">
+            Delete
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

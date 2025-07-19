@@ -1,0 +1,67 @@
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">{{ editUser ? "Edit User" : "Add User" }}</h5>
+    <form (ngSubmit)="onSubmit()" #userForm="ngForm">
+      <div class="mb-3">
+        <label for="username" class="form-label">Username</label>
+        <input
+          type="text"
+          id="username"
+          class="form-control"
+          [(ngModel)]="user.username"
+          name="username"
+          required
+        />
+      </div>
+      <div class="mb-3">
+        <label for="nama" class="form-label">Nama</label>
+        <input
+          type="text"
+          id="nama"
+          class="form-control"
+          [(ngModel)]="user.nama"
+          name="nama"
+          required
+        />
+      </div>
+      <div class="mb-3">
+        <label for="hakAkses" class="form-label">Hak Akses</label>
+        <input
+          type="text"
+          id="hakAkses"
+          class="form-control"
+          [(ngModel)]="user.hakAkses"
+          name="hakAkses"
+          required
+        />
+      </div>
+      <div class="mb-3">
+        <label for="kdKlinik" class="form-label">Kode Klinik</label>
+        <input
+          type="text"
+          id="kdKlinik"
+          class="form-control"
+          [(ngModel)]="user.kdKlinik"
+          name="kdKlinik"
+        />
+      </div>
+      <div class="mb-3">
+        <label for="kdCabang" class="form-label">Kode Cabang</label>
+        <input
+          type="text"
+          id="kdCabang"
+          class="form-control"
+          [(ngModel)]="user.kdCabang"
+          name="kdCabang"
+        />
+      </div>
+      <button type="submit" class="btn btn-primary">
+        {{ editUser ? "Update" : "Save" }}
+      </button>
+      <button type="button" class="btn btn-secondary ms-2" (click)="cancel()">
+        Cancel
+      </button>
+    </form>
+  </div>
+</div>
+</div>
