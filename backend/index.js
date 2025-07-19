@@ -4,129 +4,190 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const crypto = require("crypto");
 require("dotenv").config();
-
-function auth(req, res, next) {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader) {
-    return res.status(401).json({ message: "no token provided" });
-  }
-  const token = authHeader.split(" ")[1];
-
-  try {
-    const user = decrypt(token);
-    req.user = user;
-    next();
-  } catch {
-    return res.status(401).json({ message: "invalid token" });
-  }
-}
-
 const cors = require("cors");
-app.use(cors());
 
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-//CRUD operations
-//read
-app.get("/users", async (req, res) => {
-  const result = await pool.query("SELECT * FROM users");
-  res.json(result.rows);
-});
-app.post("/users", auth, async (req, res) => {
-  console.log(req.body);
-  const { username, password, nama, hakAkses, kdKlinik, kdCabang } = req.body;
-  const result = await pool.query(
-    "INSERT INTO users (kduser,username, password, name, hakakses, kdklinik, kdcabang) VALUES (gen_random_uuid(),$1, $2, $3, $4, $5, $6) RETURNING *",
-    [username, password, nama, hakAkses, kdKlinik, kdCabang]
-  );
-  console.log("success insert");
-  res.status(201).json(result.rows[0]);
-});
-
-//update
-
-app.put("/users/:id", async (req, res) => {
-  const { id } = req.params;
-  console.log(id);
-
-  const { username, password, nama, hakAkses, kdKlinik, kdCabang } = req.body;
-  const result = await pool.query(
-    "UPDATE users SET username = $1, password = $2, name = $3, hakAkses = $4, kdKlinik = $5, kdCabang = $6 WHERE kduser = $7 RETURNING *",
-    [username, password, nama, hakAkses, kdKlinik, kdCabang, id]
-  );
-  if (result.rows.length === 0) {
-    return res.status(404).json({ error: "User not found" });
-  }
-  res.json(result.rows[0]);
-});
-
-//delete
-app.delete("/users/:id", async (req, res) => {
-  const { id } = req.params;
-  await pool.query("DELETE FROM users where kduser=$1", [id]);
-  res.send("User deleted");
-});
-
-//decrypt
-
+// Utils
 const algorith = "aes-256-cbc";
 const key = process.env.SECRET_KEY;
-const iv = process.env.iv;
+const iv = process.env.IV;
 
 function encrypt(text) {
-  const cipher = crypto.createCipheriv(algorith, key, iv);
-  let encrypted = cipher.update(text, "utf8", "hex");
-  encrypted += cipher.final("hex");
-
-  return encrypted;
+  try {
+    const cipher = crypto.createCipheriv(algorith, key, iv);
+    let encrypted = cipher.update(text, "utf8", "hex");
+    encrypted += cipher.final("hex");
+    return encrypted;
+  } catch (err) {
+    console.error("Encrypt error:", err.message);
+    throw new Error("Failed to encrypt");
+  }
 }
 
 function decrypt(text) {
-  const chiper = crypto.createDecipheriv(algorith, key, iv);
-  let decrypted = chiper.update(text, "hex", "uf8");
-  decrypted += chiper.final("utf8");
-
-  return decrypted;
+  try {
+    const decipher = crypto.createDecipheriv(algorith, key, iv);
+    let decrypted = decipher.update(text, "hex", "utf8");
+    decrypted += decipher.final("utf8");
+    return decrypted;
+  } catch (err) {
+    console.error("Decrypt error:", err.message);
+    throw new Error("Failed to decrypt");
+  }
 }
 
-app.post("/login", async (req, res) => {
-  const { username, password } = req.body;
-  let session = [];
-  const user = await pool.query(
-    "SELECT * FROM user WHERE username =$1 AND password=$2",
-    [username, password]
-  );
-  if (user.rows[0]) {
-    const token = encrypt(user.rows[0]);
-    session.push(token);
-    await pool.query("UPDATE user SET token=$1 WHERE kduser=$2", [
-      token,
-      user.rows[0].kduser,
-    ]);
-    res.json({ message: "Login Sucess" });
-  } else {
-    res.status(401).json({ message: "Invalid password or username" });
+// Auth middleware
+function auth(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ message: "No token provided" });
+    }
+    const token = authHeader.split(" ")[1];
+    const user = decrypt(token);
+    req.user = user;
+    next();
+  } catch (err) {
+    console.error("Auth error:", err.message);
+    return res.status(401).json({ message: "Invalid token" });
+  }
+}
+
+// Endpoints
+
+// Get users
+app.get("/users", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM users");
+    res.json(result.rows);
+  } catch (err) {
+    console.error("GET /users error:", err.message);
+    res.status(500).json({ error: "Failed to fetch users" });
   }
 });
 
-app.post("/logout", (req, res) => {
-  const { token } = req.body;
-  session = session.filter((t) => t !== token);
-  res.json({ message: "Logout success" });
+// Add user
+app.post("/users", auth, async (req, res) => {
+  try {
+    const { username, password, name, hakakses, kdklinik, kdcabang } = req.body;
+    const result = await pool.query(
+      `INSERT INTO users (kduser, username, password, name, hakakses, kdklinik, kdcabang) 
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6) RETURNING *`,
+      [username, password, name, hakakses, kdklinik, kdcabang]
+    );
+    console.log("User inserted:", result.rows[0]);
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error("POST /users error:", err.message);
+    res.status(500).json({ error: "Failed to add user" });
+  }
 });
 
-app.post("/decrypt", (req, res) => {
-  const { token } = req.body;
+// Update user
+app.put("/users/:id", auth, async (req, res) => {
   try {
+    const { id } = req.params;
+    const { username, password, name, hakakses, kdklinik, kdcabang } = req.body;
+
+    const result = await pool.query(
+      `UPDATE users 
+       SET username=$1, password=$2, name=$3, hakakses=$4, kdklinik=$5, kdcabang=$6 
+       WHERE kduser=$7 RETURNING *`,
+      [username, password, name, hakakses, kdklinik, kdcabang, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    console.log("User updated:", result.rows[0]);
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("PUT /users/:id error:", err.message);
+    res.status(500).json({ error: "Failed to update user" });
+  }
+});
+
+// Delete user
+app.delete("/users/:id", auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query("DELETE FROM users WHERE kduser=$1", [id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    console.log(`User with ID ${id} deleted`);
+    res.json({ message: "User deleted successfully" });
+  } catch (err) {
+    console.error("DELETE /users/:id error:", err.message);
+    res.status(500).json({ error: "Failed to delete user" });
+  }
+});
+
+// Login
+app.post("/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    console.log("Login attempt:", username);
+
+    const user = await pool.query(
+      "SELECT * FROM users WHERE username=$1 AND password=$2",
+      [username, password]
+    );
+
+    if (user.rows.length === 0) {
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
+
+    const token = encrypt(user.rows[0].kduser);
+    await pool.query("UPDATE users SET token=$1 WHERE kduser=$2", [
+      token,
+      user.rows[0].kduser,
+    ]);
+
+    console.log("Login success for:", username);
+    res.json({
+      message: "Login Success",
+      token,
+      user: user.rows[0],
+    });
+  } catch (err) {
+    console.error("POST /login error:", err.message);
+    res.status(500).json({ error: "Login failed" });
+  }
+});
+
+// Logout
+app.post("/logout", (req, res) => {
+  try {
+    const { token } = req.body;
+    // No session array anymore, so we just confirm logout
+    console.log("Logout token:", token);
+    res.json({ message: "Logout success" });
+  } catch (err) {
+    console.error("POST /logout error:", err.message);
+    res.status(500).json({ error: "Logout failed" });
+  }
+});
+
+// Decrypt token
+app.post("/decrypt", (req, res) => {
+  try {
+    const { token } = req.body;
     const decrypted = decrypt(token);
     res.json({ decrypted });
-  } catch {
+  } catch (err) {
+    console.error("POST /decrypt error:", err.message);
     res.status(400).json({ error: "Invalid token" });
   }
 });
 
+// Start server
 app.listen(PORT, () => {
-  console.log(`server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
