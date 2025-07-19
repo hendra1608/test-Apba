@@ -22,6 +22,9 @@ function auth(req, res, next) {
   }
 }
 
+const cors = require("cors");
+app.use(cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -75,13 +78,13 @@ const iv = process.env.iv;
 function encrypt(text) {
   const cipher = crypto.createCipheriv(algorith, key, iv);
   let encrypted = cipher.update(text, "utf8", "hex");
-  encrypted += chiper.final("hex");
+  encrypted += cipher.final("hex");
 
   return encrypted;
 }
 
 function decrypt(text) {
-  const cipher = crypto.createDecipheriv(algorith, key, iv);
+  const chiper = crypto.createDecipheriv(algorith, key, iv);
   let decrypted = chiper.update(text, "hex", "uf8");
   decrypted += chiper.final("utf8");
 
@@ -90,6 +93,7 @@ function decrypt(text) {
 
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
+  let session = [];
   const user = await pool.query(
     "SELECT * FROM user WHERE username =$1 AND password=$2",
     [username, password]
@@ -97,7 +101,7 @@ app.post("/login", async (req, res) => {
   if (user.rows[0]) {
     const token = encrypt(user.rows[0]);
     session.push(token);
-    await pool.query("UPDATE user SET token=$1 WHERE kduser", [
+    await pool.query("UPDATE user SET token=$1 WHERE kduser=$2", [
       token,
       user.rows[0].kduser,
     ]);

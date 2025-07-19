@@ -3,9 +3,9 @@
   <h2>User List</h2>
   <button class="btn btn-primary mb-3" (click)="addUser()">Add User</button>
   <app-user-form
-    *ngIf="addMode"
+    *ngIf="showForm"
     (save)="onSave($event)"
-    (cancel)="addMode = false"
+    (cancel)="showForm = false"
   ></app-user-form>
 
   <table class="table table-borderes">
@@ -27,7 +27,9 @@
         <td>{{ user.kdKlinik }}</td>
         <td>{{ user.kdCabang }}</td>
         <td>
-          <button class="btn btn-warning" (click)="editUser(user)">Edit</button>
+          <button class="btn btn-warning" (click)="editUser(user.id, user)">
+            Edit
+          </button>
           <button class="btn btn-danger" (click)="deleteUser(user.id)">
             Delete
           </button>

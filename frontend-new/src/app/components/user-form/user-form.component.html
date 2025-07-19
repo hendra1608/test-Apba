@@ -1,6 +1,6 @@
 <div class="card">
   <div class="card-body">
-    <h5 class="card-title">{{ editUser ? "Edit User" : "Add User" }}</h5>
+    <h5 class="card-title">{{ editData ? "Edit User" : "Add User" }}</h5>
     <form (ngSubmit)="onSubmit()" #userForm="ngForm">
       <div class="mb-3">
         <label for="username" class="form-label">Username</label>
@@ -56,12 +56,15 @@
         />
       </div>
       <button type="submit" class="btn btn-primary">
-        {{ editUser ? "Update" : "Save" }}
+        {{ editData ? "Update" : "Save" }}
       </button>
-      <button type="button" class="btn btn-secondary ms-2" (click)="cancel()">
+      <button
+        type="button"
+        class="btn btn-secondary ms-2"
+        (click)="cancelForm()"
+      >
         Cancel
       </button>
     </form>
   </div>
-</div>
 </div>

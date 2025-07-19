@@ -24,6 +24,11 @@ export class UserFormComponent implements OnInit {
       this.user = { ...this.editData };
     }
   }
+
+  cancelForm() {
+    this.cancel.emit(); // trigger event ke parent
+  }
+
   onSubmit() {
     if (this.editData) {
       this.save.emit({ id: this.editData.id, user: this.user });
