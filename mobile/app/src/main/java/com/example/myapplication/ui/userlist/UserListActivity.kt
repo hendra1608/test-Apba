@@ -7,7 +7,6 @@ class UserListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user_list)
 
-        // Setup RecyclerView
         val recyclerView = findViewById<RecyclerView>(R.id.userRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = UserListAdapter(
