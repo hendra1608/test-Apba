@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { AuthService } from 'src/app/services/auth.service';
 import { Router } from '@angular/router';
-import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -12,25 +11,18 @@ export class LoginComponent {
   username: string = '';
   password: string = '';
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
   login() {
-    this.http
-      .post<any>(`${environment.apiUrl}/login`, {
-        username: this.username,
-        password: this.password,
-      })
-      .subscribe({
-        next: (res) => {
-          console.log(res);
-          alert(res.message);
-          localStorage.setItem('token', res.token);
-          this.router.navigate(['/users']);
-        },
-        error: (err) => {
-          console.error(err);
-          alert('Username atau Password salah!');
-        },
-      });
+    this.authService.login(this.username, this.password).subscribe({
+      next: (res) => {
+        this.authService.saveToken(res.token);
+        alert(res.message);
+        this.router.navigate(['/users']);
+      },
+      error: (err) => {
+        alert('Login gagal: ' + err.error.message);
+      },
+    });
   }
 }

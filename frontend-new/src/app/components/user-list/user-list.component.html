@@ -1,14 +1,14 @@
-<p>user-list works!</p>
 <div class="container mt-4">
-  <h2>User List</h2>
-  <button class="btn btn-primary mb-3" (click)="addUser()">Add User</button>
-  <app-user-form
-    *ngIf="showForm"
-    (save)="onSave($event)"
-    (cancel)="showForm = false"
-  ></app-user-form>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>User List</h2>
+    <button class="btn btn-outline-danger" (click)="logout()">Logout</button>
+  </div>
 
-  <table class="table table-borderes">
+  <button class="btn btn-primary mb-3" (click)="openAddModal()">
+    Add User
+  </button>
+
+  <table class="table table-bordered">
     <thead>
       <tr>
         <th>Username</th>
@@ -22,15 +22,18 @@
     <tbody>
       <tr *ngFor="let user of users">
         <td>{{ user.username }}</td>
-        <td>{{ user.nama }}</td>
+        <td>{{ user.name }}</td>
         <td>{{ user.hakAkses }}</td>
         <td>{{ user.kdKlinik }}</td>
         <td>{{ user.kdCabang }}</td>
-        <td>
-          <button class="btn btn-warning" (click)="editUser(user.id, user)">
+        <td class="d-flex gap-2">
+          <button class="btn btn-warning btn-sm" (click)="openEditModal(user)">
             Edit
           </button>
-          <button class="btn btn-danger" (click)="deleteUser(user.id)">
+          <button
+            class="btn btn-danger btn-sm"
+            (click)="deleteUser(user.kduser)"
+          >
             Delete
           </button>
         </td>
